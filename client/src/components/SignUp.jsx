@@ -5,6 +5,7 @@ import NavBar from './Navbar.jsx';
 import FlatButton from 'material-ui/FlatButton';
 import { ValidatorForm } from 'react-form-validator-core';
 import { TextValidator} from 'react-material-ui-form-validator';
+import WalletSelector from './WalletSelector.jsx';
 
 class SignUp extends React.Component {
   constructor (props) {
@@ -21,7 +22,8 @@ class SignUp extends React.Component {
       },
       submitted: false,
       didSignupFail: false,
-      errorCode: null
+      errorCode: null,
+      wallets: [],
     }
   }
 
@@ -38,28 +40,34 @@ class SignUp extends React.Component {
     });
     
     let user = this.state.formData;
+    console.log(user);
 
     axios.post('/signup', user)
-      .then((response) => {
-        let userId = response.data.userId;
-        this.props.logUserIn(userId);
-        this.props.history.push('/');
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 422) {
-          console.log('error authenticating user errors', error.response)
-          this.setState({
-            didSignupFail: true,
-            errorCode: 422
-          })
-        } else {
-          console.log('Error in component', error.response)
-          this.setState({
-            didSignupFail: true,
-            errorCode: 500
-          })   
-        }
-      });
+    .then((response) => {
+      let userId = response.data.userId;
+      this.props.logUserIn(userId);
+      this.props.history.push('/');
+    })
+    .catch((error) => {
+      if (error.response && error.response.status === 422) {
+        console.log('error authenticating user errors', error.response)
+        this.setState({
+          didSignupFail: true,
+          errorCode: 422
+        })
+      } else {
+        console.log('Error in component', error.response)
+        this.setState({
+          didSignupFail: true,
+          errorCode: 500
+        })   
+      }
+    });
+  }
+
+  getWallets (wallets) {
+    this.setState({wallets});
+    this.state.formData.wallets = this.state.wallets;
   }
 
   componentWillMount() {
@@ -125,6 +133,7 @@ class SignUp extends React.Component {
                 validators={['required', 'isNumber', 'minStringLength:10', 'maxStringLength:11']}
                 errorMessages={['this field is required', 'not a valid phone number', 'example: 7895551234', 'must not excede 11 characters']}
               /><br/>
+              <WalletSelector getWallets={this.getWallets.bind(this)}/><br/>
               <TextValidator
                 floatingLabelText="Password"
                 onChange={this.handleInputChanges.bind(this)}

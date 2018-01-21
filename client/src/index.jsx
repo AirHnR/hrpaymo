@@ -38,13 +38,23 @@ class App extends React.Component {
       globalFeed: {},
       userFeed: {},
       balance: null,
-      userInfo: {}
+      userInfo: {},
+      wallets: []
     }
     this.logUserOut = this.logUserOut.bind(this);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.userInfo !== this.state.userInfo) {
+      this.getWallets();
+    }
+    if (prevState.userFeed !== this.state.userFeed) {
+      this.getWallets();
+    }
+  }
+
   loadUserData(userId) {
-    this.getUserInfo(userId)
+    this.getUserInfo(userId);
     this.getBalance(userId);
     this.getFeed('globalFeed', userId);
     this.getFeed('userFeed', userId);
@@ -52,8 +62,21 @@ class App extends React.Component {
 
   refreshUserData(userId) {
     this.getBalance(userId);
+    this.getWallets(userId);
     this.getFeed('globalFeed', userId, this.state.globalFeed.newestTransactionId || null);
     this.getFeed('userFeed', userId, this.state.userFeed.newestTransactionId || null);
+  }
+
+  getWallets (userId) {
+    axios('/wallets', {params: {userId: userId}})
+    .then((response) => {
+      this.setState({
+        wallets: response.data
+      });
+    })
+    .catch((err) =>{
+      console.error('get wallet error:', err);
+    });
   }
 
   getFeed(feedType, userId = null, sinceId) {
@@ -69,7 +92,7 @@ class App extends React.Component {
         this.prependNewTransactions(feedType, response.data);
       })
       .catch((err) => {
-        console.error(err);
+        console.error('get feed error:', err);
       });
   }
 
@@ -138,7 +161,7 @@ class App extends React.Component {
         localStorage.setItem('user', JSON.stringify(response.data));
       })
       .catch((err) =>{
-        console.error(err);
+        console.error('get userinfo error:', err);
       });
   }
 
@@ -151,6 +174,7 @@ class App extends React.Component {
       userInfo: obj
     })
     this.loadUserData(userId);
+    this.getWallets(userId);
   }
 
   logUserOut() {
@@ -182,6 +206,7 @@ class App extends React.Component {
                 globalFeed={this.state.globalFeed}
                 userInfo={this.state.userInfo}
                 balance={this.state.balance}
+                wallets={this.state.wallets}
                 {...props}
               />
           }
@@ -204,6 +229,7 @@ class App extends React.Component {
                 isLoggedIn={this.state.isLoggedIn} 
                 logUserOut={this.logUserOut.bind(this)}
                 userInfo={this.state.userInfo}
+                wallets={this.state.wallets}
                 {...routeProps} 
               />
           }
@@ -239,7 +265,7 @@ class App extends React.Component {
             />
             <Route 
               exact path="/login" 
-              render={routeProps => <Login {...routeProps} logUserIn={this.logUserIn.bind(this)} />} 
+              render={routeProps => <Login {...routeProps} getWallets={this.getWallets.bind(this)} logUserIn={this.logUserIn.bind(this)} />} 
             />
             <Route
             exact path="/userAnalytics"

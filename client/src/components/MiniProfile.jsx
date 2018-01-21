@@ -32,7 +32,7 @@ class MiniProfile extends React.Component {
   render() {
     return (
       <div>
-      <Paper className='feed-container'>
+      <Paper className='feed-container' id='mini-profile'>
         <Card>
           <CardHeader
             title={
@@ -42,7 +42,8 @@ class MiniProfile extends React.Component {
             }
             subtitle={
               <div className='member-tag'>
-                <span> ({this.props.userInfo.username})</span>
+                <p>@{this.props.userInfo.username}</p>
+                <p>{this.props.userInfo.email}</p>
               </div>
             }
             avatar={
@@ -52,10 +53,6 @@ class MiniProfile extends React.Component {
               />
             }
             />
-          <Divider />
-          <CardText style={style.balance}>
-            <strong>${this.props.balance}</strong>
-          </CardText>
         </Card>
       </Paper>
       </div>

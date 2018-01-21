@@ -26,5 +26,7 @@ module.exports = {
   updatePhoneNumber: profile.updatePhoneNumber,
   verifyUserPhone: profile.verifyUserPhone,
   getAllMessagesBetweenTwoUsers: messages.getAllMessagesBetweenTwoUsers,
-  userAnalytics: userAnalytics
+  userAnalytics: userAnalytics,
+  getPayeeWallets: profile.getPayeeWallets
 }
+

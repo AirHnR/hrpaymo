@@ -69,7 +69,7 @@ module.exports = {
   getUserInfo: (userId, callback) => {
     pg.table('users')
       .where({id: userId})
-      .select('id', 'username', 'first_name', 'last_name', 'created_at', 'avatar_url', 'verified')
+      .select('id', 'username', 'email', 'phone', 'first_name', 'last_name', 'created_at', 'verified', 'avatar_url')
       .then((result) => {
         callback(null, result);
       })
@@ -78,16 +78,39 @@ module.exports = {
       });
   },
 
-
   getBalance: (userId, callback) => {
     pg.table('balance')
       .where({user_id: userId})
-      .select('amount')
+      .select('*')
       .then((result) => {
         callback(null, result);
       })
       .catch((error) => {
         callback(error, null);
+      });
+  },
+
+  getPayeeWallets: (username, callback) => {
+    pg.table('users')
+      .where({username: username})
+      .select('*')
+      .then(result => {
+        console.log(result);
+        console.log(result[0].id)
+        return result[0].id;
+      }).then(id => {
+        pg.table('balance')
+        .where({user_id: id})
+        .select('*')
+        .then(result => {
+          callback(null, result);
+        })
+        .catch(error => {
+          callback(error, null);
+        });
+      })
+      .catch((error) => {
+        return error;
       });
   },
 

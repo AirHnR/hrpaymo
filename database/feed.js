@@ -8,19 +8,21 @@ const formatOutput = (item, userId) => {
 
   // If the logged-in user was involved in the transaction, display amount
   // otherwise drop
-  if (userId && (userId === item.payer_id || userId === item.payee_id)) {
+  if (userId === item.payer_id) {
+    amount = '-' + item.amount;
+  } else {
     amount = item.amount;
-    if (amount && (userId === item.payer_id)) {
-      amount = '-' + amount;
-    }
   }
-
+  
   let formattedDate = moment(item.created_at).format('MMMM Do YYYY, h:mm a');
 
   return ({
     transactionId: item.txn_id,
     amount: amount,
     note: item.note,
+    currency_from_type: item.currency_from_type,
+    currency_to_type: item.currency_to_type,
+    amount_to: item.amount_to,
     timestamp: formattedDate,
     payer: {
       userId: item.payer_id,
@@ -43,10 +45,14 @@ const formatOutput = (item, userId) => {
 // FIELD LIST
 // Public and Private fields
 
-const FEED_FIELDS = ['transactions.txn_id',
+const FEED_FIELDS = [
+  'transactions.txn_id',
   'transactions.note',
   'transactions.amount',
   'transactions.created_at',
+  'transactions.currency_from_type',
+  'transactions.currency_to_type',
+  'transactions.amount_to',
   {payer_id: 'users_transactions.payer_id'}, 
   {payer_firstName: 'payer.first_name'},
   {payer_username: 'payer.username'},

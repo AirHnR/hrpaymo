@@ -150,6 +150,7 @@ class Profile extends React.Component {
                     refreshUserData={this.props.refreshUserData}
                     payeeUsername={this.state.profileInfo.username}
                     payerId={this.props.userInfo.userId}
+                    wallets={this.props.wallets}
                   />
                 :
                   null

@@ -10,6 +10,8 @@ const _ = require('underscore');
 const setSocketListeners = require('./sockets');
 const lib = require('../lib')
 const sms = require('./sms');
+const bcrypt = require('bcrypt');
+const axios = require('axios');
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -29,17 +31,22 @@ app.post('/login', (req, res) => {
       res.status(500).json(err);
     } else {
       if (row.length) {
-        if (row[0].password === password) {
-          res.status(200).json({ userId: row[0].id });
-        } else {
-          res.status(401).json({ error : "Incorrect password"});
-        }
-      } else{
-        res.status(401).json({ error : "Invalid username"});
+        let hashedPassword = row[0].password;
+        bcrypt.compare(password, hashedPassword, function(err, result) {
+          if (err) {
+            res.status(401).json({ error : "Invalid username"});
+          } else {
+            if (result === true) {
+              res.status(200).json({ userId: row[0].id });
+            } else {
+              res.status(401).json({ error : "Incorrect password"});
+            }
+          }
+        })
       }
     }
-  });
-});
+  })
+})
 
 app.get('/usernames', (req, res) => {
   db.getUsernames(parseInt(_.escape(req.query.userId)))
@@ -53,6 +60,18 @@ app.get('/usernames', (req, res) => {
     console.error('error on get of usernames:', err.message);
     res.status(400).json({ error : "Improper format." });
   });
+})
+
+app.get('/payee/wallets', (req, res) => {
+  db.getPayeeWallets(req.query.username, (err, result) => {
+    if (err) {
+      console.error('error on get of payee wallets:', err.message);
+      res.status(400).json({ err : "No wallets found." });
+    } else {
+      res.json(result);
+      console.log('result', result);
+    }
+  }); 
 })
 
 app.get('/profile', (req, res) => {
@@ -70,7 +89,9 @@ app.get('/profile', (req, res) => {
           username: _.unescape(ui.username),
           displayName: _.unescape(ui.first_name + ' ' + ui.last_name),
           createdAt: _.unescape(ui.created_at),
-          avatarUrl: _.unescape(ui.avatar_url)
+          avatarUrl: _.unescape(ui.avatar_url),
+          email: _.unescape(ui.email),
+          phone: _.unescape(ui.phone)
         }
         res.status(200).json(userInfo);
       } else{
@@ -97,12 +118,28 @@ app.get('/balance', (req, res) => {
   });
 });
 
+app.get('/wallets', (req, res) => {
+  let userId = req.query.userId;
+  db.profile.getBalance(userId, (err, rows) => {
+    if (err) {
+      console.error("Error retrieving from database: ", err);
+      res.status(500).json(err);
+    } else {
+      if (rows.length) {
+        res.status(200).json(rows);
+      } else{
+        res.status(400).json({ error : "No such user in database."});
+      }
+    }
+  });
+});
 
 app.post('/signup', (req, res) => {
   // check to see if req fields are empty
   if(!req.body.username ||
     !req.body.password ||
     !req.body.firstName ||
+    !req.body.wallets||
     !req.body.lastName) {
       res.status(400).json({ error: "Improper format." });
       return;
@@ -110,9 +147,13 @@ app.post('/signup', (req, res) => {
 
   let signupData = {};
   for(let key in req.body) {
-    signupData[_.escape(key.replace(/"/g,"'"))] = _.escape(req.body[key].replace(/"/g,"'"));
+    if (key !== 'wallets') {
+      signupData[_.escape(key.replace(/"/g,"'"))] = _.escape(req.body[key].replace(/"/g,"'"));
+    } else {
+      signupData[key] = req.body[key];
+    }
   }
-  db.signup.newUserSignup(signupData, 100)
+  db.signup.newUserSignup(req.body)
     .then(userId => {
       res.status(201).json({ userId: userId });
     })
@@ -131,6 +172,15 @@ app.post('/signup', (req, res) => {
     })
 })
 
+app.get('/exchangeRate', (req, res) => {
+  axios.get('http://apilayer.net/api/live', 
+    {params: {access_key: '6c3938f9ca0181b6c222db4d74c0dffb',
+              currencies: `${req.query.currencyFrom}, ${req.query.currencyTo}`}
+    }).then(response => {
+      res.send(response.data.quotes);
+    })
+})
+
 app.post('/pay', (req, res) => {
   // TODO: check if user is still logged in (i.e. check cookie) here. If not, send back appropriate error response.
   let paymentData = {};
@@ -142,23 +192,15 @@ app.post('/pay', (req, res) => {
     res.status(400).json({ error : 'Improper format.' });
     return;
   }
-  db.payment(paymentData)
-    .then(({balance, transactionId}) => {
+
+  db.payment(paymentData, (err, transactionId) => {
+    if (transactionId) {
       lib.notify.notifyTransaction(transactionId);
-    // .then(balance => {
-      // sms.notifyTransaction(transactionId);
-      res.status(201).json({ balance: balance });
-    })
-    .catch(err => {
-      console.error('error on payment:', err.message);
-      if(err.message.includes('Insufficient funds')) {
-        res.status(422).json({ error: 'Insufficient funds.' });
-      } else if(err.message.includes('Invalid payee username')) {
-        res.status(422).json({ error: 'Invalid payee username.' });
-      } else {
-        res.status(400).json({ error : 'Improper format.' })
-      }
-    })
+      res.status(201).json(transactionId);
+    } else {
+      res.status(422).json({ err: 'Insufficient funds.' });
+    }
+  });
 });
 
 

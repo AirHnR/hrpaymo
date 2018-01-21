@@ -19,7 +19,9 @@ const FeedTransaction = (props) => {
         }
         rightAvatar={
           <div className={isDebit ? 'feed-item-amount showDebit' : 'feed-item-amount'}>
-            {props.transaction.amount}
+            {`${props.transaction.currency_from_type} ${Math.abs(parseFloat(props.transaction.amount)).toFixed(2)}`}
+            <br/>
+            {`${props.transaction.currency_to_type} ${props.transaction.amount_to}`}
           </div>
         }
         secondaryText={

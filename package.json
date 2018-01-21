@@ -19,7 +19,8 @@
     "disable-sms": "heroku config:set ENABLE_SMS=false",
     "start": "node server/index.js",
     "create-db": "psql -d postgres -a -f schema.sql",
-    "test": "mocha test --exit && jest ./client"
+    "test": "mocha test --exit && jest ./client",
+    "heroku-pg": "heroku pg:psql postgresql-tapered-30799 --app paymohnr"
   },
   "dependencies": {
     "authy": "^1.3.0",

@@ -33,6 +33,7 @@ class Login extends React.Component {
         let userId = response.data.userId;
         this.props.logUserIn(userId);
         this.props.history.push('/');
+        this.props.getWallets(userId);
       })
       .catch((error) => {
         if (error.response && error.response.status === 401) {
