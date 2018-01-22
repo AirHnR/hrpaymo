@@ -46,12 +46,12 @@ class App extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.userInfo !== this.state.userInfo) {
-      this.getWallets();
-    }
-    if (prevState.userFeed !== this.state.userFeed) {
-      this.getWallets();
-    }
+    // if (prevState.userInfo !== this.state.userInfo) {
+    //   this.getWallets();
+    // }
+    // if (prevState.userFeed !== this.state.userFeed) {
+    //   this.getWallets();
+    // }
   }
 
   componentDidMount() {

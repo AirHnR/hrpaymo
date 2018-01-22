@@ -190,16 +190,6 @@ class Payment extends React.Component {
         amount_to: amountTo
       });
     })
-    // axios.get('http://apilayer.net/api/live', 
-    // {params: {access_key: '6c3938f9ca0181b6c222db4d74c0dffb',
-    //           currencies: `${this.state.currency_from_type}, ${this.state.currency_to_type}`}
-    // }).then(response => {
-    //   console.log(response.data.quotes);
-    //   let amountTo = this.calcfxRate (response.data.quotes);
-    //   this.setState({
-    //     amount_to: amountTo
-    //   });
-    // })
   }
 
   payUser() {
@@ -225,10 +215,6 @@ class Payment extends React.Component {
           paymentFail: false,
           emojis: [],
           amount_to: '',
-          wallet_from_id: '',
-          wallet_to_id: '',
-          currency_to_type: '',
-          currency_from_type: ''
         });
         setTimeout(() => this.props.refreshUserData(this.props.payerId), 400);
       })

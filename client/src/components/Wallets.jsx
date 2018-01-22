@@ -13,17 +13,27 @@ class Wallets extends React.Component {
 
   componentDidMount () {
     this.setState({
-      wallets: this.props.wallets
+      wallets: this.props.wallets,
+      // currentWallet: this.props.wallets[0]
     });
   }
 
   componentWillReceiveProps(nextProps) {
     if(this.props.wallets !== nextProps.wallets) {
       this.setState({
-        wallets: this.props.wallets
+        wallets: nextProps.wallets,
+        currentWallet: nextProps.wallets[0]
       });
     }  
   } 
+
+  // componentDidUpdate(prevProps, prevState) {
+  //   if (prevState.wallets !== this.state.wallets) {
+  //     this.setState ({
+  //       currentWallet: this.state.wallets[0]  
+  //     });
+  //   }
+  // }
 
   renderWallets () {
     return this.state.wallets.map((wallet, idx) => {
@@ -41,7 +51,7 @@ class Wallets extends React.Component {
   }
 
   renderCurrentWallet (currencyType) {
-    let wallet = this.props.wallets.filter(wallet =>
+    let wallet = this.state.wallets.filter(wallet =>
       wallet.currency_type === currencyType
     )
 

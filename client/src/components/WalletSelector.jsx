@@ -8,7 +8,6 @@ const wallets = {
   'CAD': 'Canadian Dollar',
   'EUR': 'Euro',
   'ARS': 'Argentine Peso',
-  'BTC': 'Bit Coin'
 };
 
 /**
